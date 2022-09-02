@@ -41,3 +41,4 @@ COPY build/libs/docker-*.jar dockersample.jar
 # 기능     : java -jar 명령어를 사용하여 container 환경의 dockersample.jar파일 실행
 #──────────────────────────────────────────────────────────────
 ENTRYPOINT ["java", "-jar", "dockersample.jar"]
+#CMD ["java", "-jar", "dockersample.jar"]
