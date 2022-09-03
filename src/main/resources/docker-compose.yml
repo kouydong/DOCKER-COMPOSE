@@ -1,0 +1,128 @@
+#──────────────────────────────────────────────────────────────
+# 속성 : version
+# 기능 : 사용할 버젼 선택
+#        version: "1.x" deprecated
+#        version: "2.x"
+#        version: "3.x" docker swarm 상용가능
+#──────────────────────────────────────────────────────────────
+version: "3.9"
+#──────────────────────────────────────────────────────────────
+# 속성 : services
+# 기능 : 사용할 컨테어너(예 : Front-end, Back-end, DB 등등을 설정하기 위한 상위 속성
+#──────────────────────────────────────────────────────────────
+services:
+  #──────────────────────────────────────────────────────────────
+  # 주요 속성 정리
+  #──────────────────────────────────────────────────────────────
+  # image : docker image 사용시 설정
+  # image: mysql
+  #──────────────────────────────────────────────────────────────
+  # restart : docker-compose 실행 시 재시작 설정
+  # restart: always
+  #──────────────────────────────────────────────────────────────
+  # build : docker-compose.yml 파일로부터 Dockerfile위치 설정
+  # build .
+  # build:
+  #   context: ../..
+  #──────────────────────────────────────────────────────────────
+  # ports : 포트맵핑(4000:5000) 시 설정
+  # ports:
+  #   - 9000:8000
+  #──────────────────────────────────────────────────────────────
+  # environment : 환경 설정
+  # environment:
+  #   LANG: C.UTF-8
+  #   TZ: Asia/Seoul
+  #   spring.profiles.active: local
+  #──────────────────────────────────────────────────────────────
+  # container_name : 서비스컨테이너의 이름 설정(지정하지 않을경우 임의의 컨테이너명이 설정됨)
+  # container_name: back-end
+  #──────────────────────────────────────────────────────────────
+  # working_dir : 컨테이너내의 워킹 디렉토리를 설정(Dockerfile에 설정되어 있다면 정의 불필요)
+  # working_dir: /usr/src/back-end
+  #──────────────────────────────────────────────────────────────
+  # links : 다른 컨터이너를 접속할 때의 컨테이너 명의 기술
+  # links:
+  #   - noderedis
+  #──────────────────────────────────────────────────────────────
+  # networks : 서로 다른 컨테이너를 연결해야 할 경우 설정(links랑 동일)
+  # networks:
+  #   - compose-networks:
+  #──────────────────────────────────────────────────────────────
+  # replica : 특정 서비스를 복제할 때 사용
+  # replica: 4
+  #──────────────────────────────────────────────────────────────
+  # volumes : DB 이미지 같은 경우 저장된 데이터를 보존하기 위해 사용
+  # volumnes:
+  #   - .:/data/mysqldb : 현재데이터베이스설치경로의데이터를 /data/mysqldb 디렉토리랑연결
+  #──────────────────────────────────────────────────────────────
+  # depends_on : 컨터이너 생성 우선 순위를 설정할 때 사용
+  # depends_on:
+  #   - CONTAINER_NAME
+  #──────────────────────────────────────────────────────────────
+  # 속성 : DB 설정
+  # 기능 : 사용자 정의 속성으로 back-end 영역을 설정
+  #──────────────────────────────────────────────────────────────
+  # MYSQL DB 설정
+  #──────────────────────────────────────────────────────────────
+  db-mysql:
+    container_name: db-mysql
+    image: mysql
+    volumes:
+      - .:/data/mysqldb
+    restart: always
+    environment:
+      MYSQL_USER: mysql_user
+      MYSQL_PASSWORD: mysql_user_password
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: mysql_db
+    ports:
+      - 3308:3306
+    networks:
+      - compose-networks
+  #──────────────────────────────────────────────────────────────
+  # MONGO DB 설정
+  #──────────────────────────────────────────────────────────────
+#  db-mongodb:
+#    image: mongo
+#    volumes:
+#      - .:/data/mongodb
+#    restart: always
+#    environment:
+#      환결설정 Property
+#    ports:
+#      - 27017:27017
+#    networks:
+#      - compose-networks
+  #──────────────────────────────────────────────────────────────
+  # 속성 : front-end
+  # 기능 : 사용자 정의 속성으로 front-end 영역을 설정
+  #──────────────────────────────────────────────────────────────
+#  front-end:
+#    image: 140905/node.js
+#    container_name: front-end
+#    environment:
+
+  #──────────────────────────────────────────────────────────────
+  # 속성 : back-end
+  # 기능 : 사용자 정의 속성으로 back-end 영역을 설정
+  #──────────────────────────────────────────────────────────────
+  back-end:
+    depends_on:
+      - db-mysql
+    restart: always
+    build: ../../..
+    container_name: back-end
+    environment:
+      spring.profiles.active: local
+      SPRINGBOOT_DB_HOST: db-mysql:3306
+      SPRINGBOOT_DB_NAME: mysql_db
+      SPRINGBOOT_DB_USER: mysql_user
+      SPRINGBOOT_DB_PASSWORD: mysql_user_password
+    ports:
+      - 9000:8080
+    networks:
+      - compose-networks
+
+networks:
+  compose-networks:
